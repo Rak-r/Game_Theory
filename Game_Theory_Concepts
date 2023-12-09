@@ -1,0 +1,47 @@
+Game theroy Concepts:
+
+
+strategies --> Tells how the players will going to choose their actions availabe to them to encounter the other playerrs moves.
+
+Actions -->> Available ways to interact in the game, like stone paper scissors -- 3 actions chose stone or paper or scissors
+
+Nash Equilibrium --> When the players feels that the action selected by them is the best to encounterr the other players actions and they have do intention to deviate or chnage their selected action, the the game is in Nash Equilibriuum.
+
+Utilities -->> Lets say this in layman terms for understanding -->> When you as a player or any player choses his choise of action among the actions available to him, it holds a value called payoffs depending on if you won by chosing that action or lost. On the basis of these values utility is calculated ( solving the game).
+
+Solution concepts -->> Tells how game is going to develop.
+
+Zero sum game means where each players payoffs at every action cancels out the other player payoffs.Example game might be 'Matching pennies"
+
+In Zero sum game, there is no pure Nash equilibrium, however, there is MIxed Strategy Nash Equilibrium exists.
+
+Calulating expected utilities in mixed strategy Nash Equilibrium:
+
+ Select one player's moves to calculated the other player's startegy,  
+ 
+ Eul = Eur  (Expected utility for selecting left = expected utility to payoff for selecting right)
+ 
+ Player 2's Expected utility for left ( Eul) = f(sigma u)  [Function of mixed strategy), where (sigmau) = probability that Player one is Up
+ similary for right , Eur = (sigmau)
+  
+  
+  
+  In the chicken model,  the availablke actions to the players are 
+  FAST(2 --> covering two grids distance)  and SLOW(1 --> covering one grid distance), so expected utiliies for players will be at  time (t +1), the players covered that much diatnce so getting close to each other that's y subtracting the actions. 
+  
+  SLOW -SLOW -->> y-1, x-1, t+1
+  SLOW -FAST -->> y-1, x-2, t+1
+  FAST -SLOW -->> y-2, x-1, t+1
+  FAST -FAST -->> y-2, x-2, t+1
+  
+  
+  It iis quiet evident, that selected strategies affect the expected utilities.
+  
+  Nomal form of game -->> The games that can be represnted as 2D matrix to solve.
+  
+  Extensive form of games -->> The games that has a tree like structure cointaining nodes. THese  are solved at sub stages or sub games.
+  
+  Simultaneous games -->> Where players takes actions at same time, no knowledge of other player startegies
+  
+  Sequential Game -->> Where players have a slight idea about other player's actions. Eg -->> Stone paper scrissors, where strategies are predefined or we can evenconsider our chicken model, where the the available strategies to players are FAST or SLOW.
+   
