@@ -17,7 +17,7 @@ In Zero sum game, there is no pure Nash equilibrium, however, there is MIxed Str
 
 Calulating expected utilities in mixed strategy Nash Equilibrium:
 
- Select one player's moves to calculated the other player's startegy,  
+ Select one player's moves to calculate the other player's startegy,  
  
  Eul = Eur  (Expected utility for selecting left = expected utility to payoff for selecting right)
  
@@ -26,7 +26,7 @@ Calulating expected utilities in mixed strategy Nash Equilibrium:
   
   
   
-  In the chicken model,  the availablke actions to the players are 
+  In the chicken model,  the available actions to the players are 
   FAST(2 --> covering two grids distance)  and SLOW(1 --> covering one grid distance), so expected utiliies for players will be at  time (t +1), the players covered that much diatnce so getting close to each other that's y subtracting the actions. 
   
   SLOW -SLOW -->> y-1, x-1, t+1
