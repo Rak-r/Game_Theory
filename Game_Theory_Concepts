@@ -45,3 +45,14 @@ Calulating expected utilities in mixed strategy Nash Equilibrium:
   
   Sequential Game -->> Where players have a slight idea about other player's actions. Eg -->> Stone paper scrissors, where strategies are predefined or we can evenconsider our chicken model, where the the available strategies to players are FAST or SLOW.
    
+  Pygambit specifics:
+
+  Node: A node represents in a sequentila form/extensive form of game.
+
+  Infoset: An information set present in the game.
+
+  Action: Action/move available at the Infoset in the game.
+
+  Root: THe root node in the game if the game is sequential game (tree like structure).
+
+  
