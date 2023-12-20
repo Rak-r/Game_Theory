@@ -8,9 +8,9 @@ class PrisonersDilemma():
         self.player_1 = str(player_1)                                                    # assign player 1 attribute
         self.player_2 = str(player_2)                                                    # assign  player 2 attribute
         
-        '''Can create the game using new_table, from_arrays method, preferred method is from_dict because of strtured key-value payoff pairs for each player'''
+        '''Can create the game using new_table, from_arrays method, preferred method is from_dict because of structured key-value payoff pairs for each player'''
         self.payoffs = {'P1_payoff':np.array([[-2,-5],[0,-3]]),                 
-                   'P2_payoff': np.array([[-2,0],[-5,-3]])}
+                   'P2_payoff': np.array([[-3,0],[-5,-3]])}
         
 
         self.create_game = gambit.Game.from_dict(self.payoffs,"A Prisonor's Dilemma")      # gambit method to create a game
@@ -18,7 +18,7 @@ class PrisonersDilemma():
         self.create_game.players[1].label = self.player_2
         
 
-        print(f"Displaying Stragtegies available to the players: {([p.strategies for p in self.create_game.players ])}")
+        print(f"Displaying Strategies available to the players: {([p.strategies for p in self.create_game.players ])}")
         print('\n')
 
         self.solvegame()                                                                  # call the function to solve the game

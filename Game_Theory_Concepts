@@ -1,7 +1,10 @@
 Game theroy Concepts:
 
+Rational Plyers --> The player which aims to maximise thier utility. They take startegies and actions of other players into consideration
+to make their decsion in the game. In layman terms, the player who do not get influenced by behavioural constraints like emotions.  
 
-strategies --> Tells how the players will going to choose their actions availabe to them to encounter the other playerrs moves.
+
+Strategies --> Tells how the players will going to choose their actions availabe to them to encounter the other players moves.
 
 Actions -->> Available ways to interact in the game, like stone paper scissors -- 3 actions chose stone or paper or scissors
 
@@ -21,13 +24,14 @@ Calulating expected utilities in mixed strategy Nash Equilibrium:
  
  Eul = Eur  (Expected utility for selecting left = expected utility to payoff for selecting right)
  
- Player 2's Expected utility for left ( Eul) = f(sigma u)  [Function of mixed strategy), where (sigmau) = probability that Player one is Up
- similary for right , Eur = (sigmau)
+ Player 2's Expected utility for left ( Eul) = f(sigma u)  [Function of mixed strategy), where (sigma u) = probability that Player one is Up
+ similary for right , Eur = (sigma u)
   
   
   
   In the chicken model,  the available actions to the players are 
-  FAST(2 --> covering two grids distance)  and SLOW(1 --> covering one grid distance), so expected utiliies for players will be at  time (t +1), the players covered that much diatnce so getting close to each other that's y subtracting the actions. 
+  FAST(2 --> covering two grids distance)  and SLOW(1 --> covering one grid distance), so expected utiliies for players will be at  time (t +1), 
+  the players covered that much diatnce so getting close to each other that's y subtracting the actions. 
   
   SLOW -SLOW -->> y-1, x-1, t+1
   SLOW -FAST -->> y-1, x-2, t+1
@@ -39,7 +43,7 @@ Calulating expected utilities in mixed strategy Nash Equilibrium:
   
   Nomal form of game -->> The games that can be represnted as 2D matrix to solve.
   
-  Extensive form of games -->> The games that has a tree like structure cointaining nodes. THese  are solved at sub stages or sub games.
+  Extensive form of games -->> The games that has a tree like structure containing nodes. THese  are solved at sub stages or sub games.
   
   Simultaneous games -->> Where players takes actions at same time, no knowledge of other player startegies
   
@@ -55,4 +59,12 @@ Calulating expected utilities in mixed strategy Nash Equilibrium:
 
   Root: THe root node in the game if the game is sequential game (tree like structure).
 
-  
+
+## The outpit of prisoner's dilemma game using emupure method outputs all the pure strategies selected by the players.
+
+The output looks like `[[[Rational(0, 1), Rational(1, 1)], [Rational(0, 1), Rational(1, 1)]]]`
+
+1. It is a nested listed structure, in which the outermost list stores the calulated Nash Equilibrium. 
+2. The first inner list actually stores the Nash Equilibrium.
+3. The innermost list consists of two players strategy profiles representing `[Rational(0,1), Rational(1,1)]'which means that player 1 is playing its second strategy 
+and not the first and similar for player 2.
