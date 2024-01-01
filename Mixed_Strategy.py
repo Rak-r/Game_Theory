@@ -40,7 +40,7 @@ class MatchingPennies():
         self.player_1 = player_1
         self.player_2 = player_2
 
-        self.create_game = gambit.Game.from_dict(self.payoffs,"Matching pennies")         # gambit method to create a game
+        self.create_game = gambit.Game.from_dict(self.payoffs,"Matching pennies")         #  gambit method to create a game
         self.create_game.players[0].label = self.player_1                                 #  can add the label for players
         self.create_game.players[1].label = self.player_2
         
