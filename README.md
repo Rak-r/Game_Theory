@@ -1,5 +1,5 @@
 This repository explores the operations with Game Theory for decision making. 
-I have been research about different ways to integrate sequential games for decision making into robotics.
+I have been researching about different ways to integrate sequential games for decision making into robotics.
 
 # Integrating ROS2 and Gambit
 
