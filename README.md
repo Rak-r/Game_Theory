@@ -1,6 +1,11 @@
 This repository explores the operations with Game Theory for decision making. 
 I have been researching about different ways to integrate sequential games for decision making into robotics.
 
+
+
+
+
+
 # Integrating ROS2 and Gambit
 
 1. The script `Test_Game_Theory_ROS2.py` includes a simple game similar to `Prisonor's Dilemma` created using gambit.
@@ -14,3 +19,6 @@ I have been researching about different ways to integrate sequential games for d
 5. We can visualise the robot moving with the output of the game's payoff.
 
 ##### Note: This script shows an initial insights to integrate game outputs with ROS2 and testing in simulation. In future more in-depth exploration will be provided.
+
+
+

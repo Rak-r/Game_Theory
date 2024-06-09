@@ -15,7 +15,7 @@ from sequentialChicken import ChickenGame
 import random
 from time import time
 from visualization_msgs.msg import Marker
-
+from rclpy.duration import Duration
 
 
 class ChickenSpeedModulatorNode(Node):
@@ -72,7 +72,7 @@ class ChickenSpeedModulatorNode(Node):
         # PEDESTRIAN SPECIFIC VARIABLES
         self.px_ms = np.nan                                                                                               # taken from real readings just for code testing
         self.py_ms = np.nan
-        self.ped_max_vel = 0.7                                                                                                           # Avg. walking speed of human ( Btw 0.9 and 1.2 m/s)
+        self.ped_max_vel = 0.2                                                                                                           # Avg. walking speed of human ( Btw 0.9 and 1.2 m/s)
         self.ped_pose_x = np.nan                                                                                                       # nan means there is no pedestrian in the scene
         self.ped_pose_y = np.nan 
         self.min_dist = 0.8
@@ -81,25 +81,20 @@ class ChickenSpeedModulatorNode(Node):
         self.is_plan = False
         self.ped_time_to_collision = np.inf
         # COLLISION CHECKING VARIABLES
-        self.slope = 0.0
-        self.intercept = 0.0
-        self.line_segment_length = 0.0
-
+       
         # create instance of chicken game class
         self.game_of_chicken = ChickenGame()
-        self.b_fast = True
+        self.b_yield = False
         self.old_time = time()
 
-        self.V,self.S = self.game_of_chicken.solveGame(U_crash_Y=-100, U_crash_X=-100, U_time=1., NY=20, NX=20)
-        self.game_played = False 
-        self.prob_robot_yield = 0.0
-        self.X = 0.0
-        self.Y = 0.0
+        self.V,self.S = self.game_of_chicken.solveGame(U_crash_Y=-100, U_crash_X=-100, U_time=1., NY=30, NX=30)
+       
+        
     '''
     callback to subscribe to NAV2 Path message from global planner server
     '''
     def robot_global_plan_cb(self, msg):
-       
+        self.is_plan = True
         waypoints = [(pose.pose.position.x, pose.pose.position.y) for pose in msg.poses]                                                 # extract the waypoints of the global plan
         self.waypoints = np.array(waypoints)
         # print(self.waypoints)
@@ -153,7 +148,7 @@ class ChickenSpeedModulatorNode(Node):
     def is_callback_triggered(self):
 
         if self.is_plan:
-            self.waypoints = np.nan
+            self.waypoints = []
         if not self.if_pedestrian:
             self.px_ms = np.nan
             self.py_ms = np.nan
@@ -185,6 +180,7 @@ class ChickenSpeedModulatorNode(Node):
         marker.color.r = r
         marker.color.g = g
         marker.color.b = b
+        marker.lifetime = Duration(seconds=0.5).to_msg()
 
         self.marker_pub.publish(marker)
     '''
@@ -224,12 +220,11 @@ class ChickenSpeedModulatorNode(Node):
         return x_closest, y_closest
    
 
-   
     '''
-    Function to check the test if a single pose and speed will collide close to a temporal trajectory
+    REAL WORK HERE  !!!  Function to check the test if a single pose and speed will collide close to a temporal trajectory
     '''
     def doesWaypointIntersectTrajectory(self, wx,wy,m,c, speedped, speedrobot, current_robot_x, current_robot_y):  
-        
+    
          # Handle zero division for speeds
         if speedrobot < 0.001:                                                                                       # no need for abs becuase taking magnitudes
             speedrobot = 0.01                                                                                        # Set minimum speed for robot
@@ -237,134 +232,102 @@ class ChickenSpeedModulatorNode(Node):
             speedped = 0.01                                                                                          # Set minimum speed for pedestrian
 
         if not self.doesWaypointIntersectPedPath(wx, wy, m, c):                                                          # if path dont intersect , no way trajectory will intersect
-            return np.inf                                                                                         # inf means there is no intersection
+            return (np.inf, np.inf, np.inf, np.inf)                                                                                        # inf means there is no intersection
        
         x_closest, y_closest = self.closest_point_on_line(wx, wy, m, c)
-        self.publish_collision_marker(x_closest, y_closest, 1.,0.,0., 0.2)
-        
+        # self.publish_collision_marker(x_closest, y_closest, 1.,0.,0., 0.2)
         
         distance_robot_to_closest = np.sqrt((current_robot_x - x_closest)**2 + (current_robot_y - y_closest)**2)                               # TODO use the curve path instead of assuming straight
-
         distance_ped_to_closest = np.sqrt((self.ped_pose_x - x_closest)**2 + (self.ped_pose_y - y_closest)**2)
-        self.get_logger().info(f'robot_dist: {distance_robot_to_closest}, ped_dist: {distance_ped_to_closest}')
         
         time_robot_to_collsion = distance_robot_to_closest/speedrobot
         time_ped_to_collision = distance_ped_to_closest/speedped
 
+        # self.get_logger().info(f'rd: {distance_robot_to_closest}, r_t: {time_robot_to_collsion}, pd: {distance_ped_to_closest}, p_t: {time_ped_to_collision}')
+        
         if abs(time_robot_to_collsion-time_ped_to_collision) <= 0.5:   #check for temporal collision
-            self.publish_collision_marker(x_closest, y_closest, 0.,0.,1.,0.5 )
-                                                                               # both times are nearly equal
-            return time_robot_to_collsion
+            self.publish_collision_marker(x_closest, y_closest, 0.,0.,1.,0.3 )
+            return (time_robot_to_collsion, time_ped_to_collision, distance_robot_to_closest, distance_ped_to_closest)
         else:
-            
-            return np.inf 
-    '''
-    Function to check that does a complete plan (list of poses) temporally intersect a trajectory?
-    '''
+            return (np.inf, np.inf, np.inf, np.inf) 
 
-    def doesPlanIntersectTrajectory(self, plan,  m,c, current_robot_x, current_robot_y):                        # Assuming both robot and Pedestrian travel at their fastest speed
-                                                           
-        for waypoint in plan:
-            wx, wy = waypoint
-                                            
-            collsion_time = self.doesWaypointIntersectTrajectory(wx,wy, m,c, self.ped_max_vel, self.robot_max_vel, current_robot_x, current_robot_y)
-           
-            if not np.isinf(collsion_time):
-                return collsion_time
-               
-        return np.inf
-    
 
-                                            
-    
     def cmd_vel_cb(self, msg):
         
         # print(f'before game: {msg.linear.x}' )
         curr_time = time()
         delta_time = curr_time - self.old_time
         
-        if self.px_ms <= 0.0001:                                                                                      # handle zero-division
+        if abs(self.px_ms) <= 0.0001:                                                                                      # handle zero-division
             self.px_ms = 0.001
-        if self.py_ms <=0.0001:
+        if abs(self.py_ms) <=0.0001:
             self.py_ms = 0.001
-        if np.isnan(self.px_ms):                                                                                      # if no pedestrian , do nothing
-            return msg                
+        if not self.if_pedestrian:                                                                                      # if no pedestrian , do nothing                
+            self.modulated_twist_pub.publish(msg)
+            
+            return         
         
-        self.slope = self.py_ms/self.px_ms
-        self.intercept = self.ped_pose_y - self.slope*self.ped_pose_x                                                 # c = y - mx
-        
+        #ped_speed = np.sqrt((self.px_ms)**2 + (self.py_ms)**2)
+        m = self.py_ms/self.px_ms     #gradient pf ped trajectory in map frame
+        c = self.ped_pose_y - m*self.ped_pose_x                                                 # c = y - mx
+        # print(m,c)
         # t_intersect, robot_dist_to_collision, ped_dist_to_collision = self.doesPlanIntersectTrajectory(self.waypoints, self.slope, self.intercept, self.robot_pose_x, self.robot_pose_y)
-        t_intersect = self.doesPlanIntersectTrajectory(self.waypoints, self.slope, self.intercept, self.robot_pose_x, self.robot_pose_y)
-
-        
-        if np.isinf(t_intersect):    
-                                                                                       # NO collision happening at this point
-            self.game_played = False                                                            # publish the same cmd_vel      
-        else:                                                                                                         # Let's play the Chicken Game
-            self.game_played = True
-            robot_dist_to_collision = self.robot_max_vel*t_intersect
-
-            x_intersect = (self.intercept - self.ped_pose_y)/self.slope
-            y_intersect = self.slope*x_intersect + self.intercept
-
-            ped_dist_to_collision = np.sqrt((self.ped_pose_x - x_intersect)**2 + (self.ped_pose_y - y_intersect)**2)
-
-            self.ped_dist = ped_dist_to_collision
-            self.robot_dist = robot_dist_to_collision
-            self.X = int(round(robot_dist_to_collision))                                                             # Discretise the points to nearest ints
-                                                                                                                # NOTE Quantise points to 1 meter boxes
-            self.Y = int(round(ped_dist_to_collision))
-
-            # self.get_logger().info(f'Robot position: {X}, Ped positon: {Y}')
-
+       
+        b_temporalCollision = False   #have we found a temporal collision?                                          
+        for waypoint in self.waypoints:
+            wx, wy = waypoint                  
+            (time_robot_to_collsion, time_ped_to_collision, distance_robot_to_closest, distance_ped_to_closest) = self.doesWaypointIntersectTrajectory(wx,wy, m,c, self.ped_max_vel, self.robot_max_vel, self.robot_pose_x, self.robot_pose_y)
+            
+            if not np.isinf(time_robot_to_collsion):
+                b_temporalCollision = True
+                break
+        b_update=False
+        if b_temporalCollision:
+            X = int(round(distance_robot_to_closest*5))                                                             # Discretise the points to nearest ints                                                                                                             # NOTE Quantise points to 1 meter boxes
+            Y = int(round(distance_ped_to_closest*5))
 
             # if we played chicken once, then do the original but if the time played chicken exceeds some thresh again play
+           
+            # if delta_time > 0.5:                                                                                      # NOTE check time is in seconds not millis
+            b_update=True
+            #lets play chicken
+            prob_robot_yield = self.S[Y, X, 0]  
+                                                                                        # Action the robot should take either yeild (SLOW) or not yield, carry on (FAST)                        
+            prob_ped_yield = self.S[Y, X, 1]   
+            r1 = random.random()                                                                                            # Create a random probabilty range (prob. is max 1)
+            if r1 < prob_robot_yield:                                
+                self.b_yield =  False   #slow                                                                                        # Slow down the robot by halving the speed in linear.x (fwd/ bkd velocity)  
+            else:
+                self.b_yield = True     #go fast
 
-            if delta_time > 0.5:                                                                                      # NOTE check time is in seconds not millis
-                # self.b_fast =  self.play_chicken(self.S, self.X, self.Y)
-                pass
-                self.old_time = curr_time
-            if self.b_fast:
-                msg.linear.x/=2
+            #debug info
+            np.set_printoptions(threshold=np.inf, precision=3, linewidth=200, suppress=True)
+            self.get_logger().info(f'X: {X}, Y: {Y}, y:{self.b_yield}, PRY: {prob_robot_yield}, PPY: {prob_ped_yield}, upte: {b_update}')
 
-        
-        np.set_printoptions(threshold=np.inf, precision=3, linewidth=200, suppress=True)
-        # self.get_logger().info(f'strategy matrix: {self.S}')
-        self.get_logger().info(f'Robot_dist: {round(self.robot_dist,3)}, R_time {round(self.robot_time_to_collision,3)}, R_curr_x: {round(self.robot_pose_x,3)}, R_curr_y{round(self.robot_pose_y,3)} P_dist: {round(self.ped_dist,3)}, P_time {round(self.ped_time_to_collision,3)}, X_close: {round(self.x_closest,3)}, Y_close: {round(self.y_closest,3)}, Game_Played : {self.game_played}, PRY: {round(self.prob_robot_yield,3)}, Game_twist: {msg.linear.x}, R_player: {self.X}, P_player: {self.Y}')
-        print('\n')
 
+            self.old_time = curr_time
+        if self.b_yield:
+            msg.linear.x/=2
+
+
+
+        # print('\n')
         # msg.linear.x =0.0
         self.modulated_twist_pub.publish(msg)
 
 
 
-
-
     def play_chicken(self, S, X, Y):  
-
         '''
         1.) Here, two players ae robot and pedestrian.
-
         2.) The row player is robot, and the colum player is pedestrian.
-
         3.) S is the strategy matrix consisting the most optimal actions (FAST/SLOW) to be taken by the robot based on the pedetrian strategy.
-
         4.) The functions takes the solved strategy matrix, x point =  distance from collsion point and Ped pose, y point = dist. from collsion point and robot pose
         '''                     
-       
-        Fast = True
-        Slow = False
         
-        self.prob_robot_yield = S[Y, X, 0]  
-        # self.get_logger().info(f'Robot yied prob : {self.prob_robot_yield}')                                                                                 # Action the robot should take either yeild (SLOW) or not yield, carry on (FAST)                        
-        prob_ped_yield = S[Y, X, 1]   
-        r1 = random.random()                                                                                            # Create a random probabilty range (prob. is max 1)
-        
-        if r1 < self.prob_robot_yield:  
-            print('slowing robot')                                                                                     # check the robot should yeild (SLOW) if yeild probility is higher  
-            return  Slow                                                                                                # Slow down the robot by halving the speed in linear.x (fwd/ bkd velocity)  
-        else:
-            return Fast
+                                            
+    
+
 
 def main():
     rclpy.init()
@@ -380,8 +343,3 @@ if __name__ == '__main__':
 
 
     
-
-
-
-
-
