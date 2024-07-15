@@ -290,7 +290,7 @@ class ChickenSpeedModulatorNode(Node):
             distance_robot_to_closest = np.sqrt((self.robot_pose_x - wx)**2 + (self.robot_pose_y - wy)**2)                               # TODO use the curve path instead of assuming straight
             distance_ped_to_closest = np.sqrt((self.ped_pose_x - wx)**2 + (self.ped_pose_y -wy)**2)
 
-            time_robot_to_closest = distance_ped_to_closest/0.2  # robot speed
+            time_robot_to_closest = distance_robot_to_closest/0.2  # robot speed
             time_ped_to_closest = distance_ped_to_closest/0.4   # assume ped moves slow  
 
             
