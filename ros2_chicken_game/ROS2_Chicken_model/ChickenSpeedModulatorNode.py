@@ -95,16 +95,7 @@ class ChickenSpeedModulatorNode(Node):
     callback to subscribe to Yolo output to get pedestrian position in world frame
     '''
     def Pedestrian_state_cb(self, pose_msg: DetectionArray, speed_msg: DetectionArray):
-        
-        
-        # self.is_pedestrian = True
-        # # TODO, this needs to go somewhere else because this callback will get triggered only when there are incoming messages
-        # if not speed_msg:
-        #     self.px_ms = np.nan
-        #     self.py_ms = np.nan
-        #     self.ped_pose_x = np.nan
-        #     self.ped_pose_y = np.nan
-        
+                
         for detection in speed_msg.detections:
             self.is_pedestrian = True
             # self.px_ms = detection.velocity.linear.x
@@ -119,7 +110,7 @@ class ChickenSpeedModulatorNode(Node):
             
             self.ped_pose_x = detection.bbox3d.center.position.x
             self.ped_pose_y = detection.bbox3d.center.position.y
-            self.ped_pose = detection.bbox3d.center
+            self.ped_pose = detection.bbox3d.center                   # also cache this for rosbag recoridng in a single message 
     '''
     callback to subscribe to NAV2 generated twist message
     '''  
@@ -127,7 +118,7 @@ class ChickenSpeedModulatorNode(Node):
         self.robot_vel = np.sqrt(msg.twist.twist.linear.x**2 + msg.twist.twist.linear.y**2)
     
     '''
-    Function to keep track if the callback is triggered or not and reset the attributes.
+    Function to keep track if the callback is triggered or not and reset the variables.
     '''
     def timer_callback(self):
 
@@ -142,7 +133,7 @@ class ChickenSpeedModulatorNode(Node):
         self.is_pedestrian = False
         self.is_plan = False
 
-    def publish_collision_marker(self, x, y, r,g,b, scale):                                                         # Marker message to visualize the spatial and temporal intersection/collision point.
+    def publish_collision_marker(self, x, y, r,g,b, scale):                # Marker message to visualize the spatial and temporal intersection/collision point.
         marker = Marker()
         marker.header.frame_id = "map"
         # marker.header.stamp = self.get_clock().now().nanoseconds / 1e9
@@ -215,21 +206,19 @@ class ChickenSpeedModulatorNode(Node):
         if speedped < 0.001:
             speedped = 0.01                                                                                          # Set minimum speed for pedestrian
 
-        if not self.doesWaypointIntersectPedPath(wx, wy, m, c):                                                          # if path dont intersect , no way trajectory will intersect
-            return (np.inf, np.inf, np.inf, np.inf)                                                                                        # inf means there is no intersection
+        if not self.doesWaypointIntersectPedPath(wx, wy, m, c):                                                      # if path dont intersect , no way trajectory will intersect
+            return (np.inf, np.inf, np.inf, np.inf)                                                                  # inf means there is no intersection
        
         # x_closest, y_closest = self.closest_point_on_line(wx, wy, m, c)
         # self.publish_collision_marker(x_closest, y_closest, 1.,0.,0., 0.2)
         x_closest = wx
         y_closest = wy
-        distance_robot_to_closest = np.sqrt((current_robot_x - x_closest)**2 + (current_robot_y - y_closest)**2)                               # TODO use the curve path instead of assuming straight
+        distance_robot_to_closest = np.sqrt((current_robot_x - x_closest)**2 + (current_robot_y - y_closest)**2)     # TODO use the curve path instead of assuming straight
         distance_ped_to_closest = np.sqrt((self.ped_pose_x - x_closest)**2 + (self.ped_pose_y - y_closest)**2)
         
         time_robot_to_collsion = distance_robot_to_closest/speedrobot
         time_ped_to_collision = distance_ped_to_closest/speedped
 
-        # self.get_logger().info(f'rd: {round(distance_robot_to_closest,3)}, r_cur: {round(current_robot_x,3)},pd: {round(distance_ped_to_closest,3)},  x_c: {x_closest}, y_c: {y_closest}, r_cur: {round(current_robot_x,3), round(current_robot_y,3)}, p_cur: {round(self.ped_pose_x,3), round(self.ped_pose_y,3)}')
-        
         if abs(time_robot_to_collsion-time_ped_to_collision) <= 0.5:   #check for temporal collision
             # self.publish_collision_marker(x_closest, y_closest, 0.,0.,1.,0.3 )
             # pdb.set_trace()
@@ -243,15 +232,14 @@ class ChickenSpeedModulatorNode(Node):
         curr_time = time()
         delta_time = curr_time - self.old_time
         b_reversing = False
-        if abs(self.px_ms) <= 0.0001:                                                                                      # handle zero-division
+        if abs(self.px_ms) <= 0.0001:                                                                         # handle zero-division
             self.px_ms = 0.001
         if abs(self.py_ms) <=0.0001:
             self.py_ms = 0.001
         if not self.is_pedestrian:   
-            # msg.angular.z = 0.0  
-            # msg.linear.x = 0.2                                                                              # if no pedestrian , do nothing                
+                                                                                                              # if no pedestrian , do nothing                
             self.modulated_twist_pub.publish(msg)
-            # print('hello1')
+            
             return
         # print('detected')
         if msg.linear.x < 0.0:
@@ -260,10 +248,10 @@ class ChickenSpeedModulatorNode(Node):
                 return
        
         #ped_speed = np.sqrt((self.px_ms)**2 + (self.py_ms)**2)
-        m = self.py_ms/self.px_ms     #gradient pf ped trajectory in map frame
-        c = self.ped_pose_y - m*self.ped_pose_x                                                                       # c = y - mx
+        m = self.py_ms/self.px_ms                                                                              #gradient pf ped trajectory in map frame
+        c = self.ped_pose_y - m*self.ped_pose_x                                                                # c = y - mx
        
-        b_spatialCollision = True   #have we found a temporal collision?                                          
+        b_spatialCollision = True                                                                              # have we found a temporal collision?                                          
        
         # for waypoint in self.waypoints:
             
@@ -274,7 +262,7 @@ class ChickenSpeedModulatorNode(Node):
         #         b_spatialCollision = True
                 
         #         break
-        wx =  4.155768871307373 #4.105230331420898
+        wx =  4.155768871307373 #4.105230331420898                                     
 
 
         wy = -2.798013925552368 #-2.8832411766052246
@@ -287,37 +275,37 @@ class ChickenSpeedModulatorNode(Node):
         if b_spatialCollision:
             
             b_update = True
-            distance_robot_to_closest = np.sqrt((self.robot_pose_x - wx)**2 + (self.robot_pose_y - wy)**2)                               # TODO use the curve path instead of assuming straight
+            distance_robot_to_closest = np.sqrt((self.robot_pose_x - wx)**2 + (self.robot_pose_y - wy)**2)         # TODO use the curve path instead of assuming straight
             distance_ped_to_closest = np.sqrt((self.ped_pose_x - wx)**2 + (self.ped_pose_y -wy)**2)
 
             time_robot_to_closest = distance_robot_to_closest/0.2  # robot speed
             time_ped_to_closest = distance_ped_to_closest/0.4   # assume ped moves slow  
 
             
-            # X = int(np.floor(time_robot_to_closest))                                                               # Discretise the points to nearest ints                                                                                                             # NOTE Quantise points to 1 meter boxes
+            # X = int(np.floor(time_robot_to_closest))                                                              # Discretise the points to nearest ints                                                                                                             # NOTE Quantise points to 1 meter boxes
             # Y = int(np.floor(time_ped_to_closest))
 
-            X = int(np.ceil(distance_robot_to_closest*2.5))                                                               # Discretise the points to nearest ints                                                                                                             # NOTE Quantise points to 1 meter boxes
+            X = int(np.ceil(distance_robot_to_closest*2.5))                                                         # Discretise the points to nearest ints                                                                                                             # NOTE Quantise points to 1 meter boxes
             Y = int(np.ceil(distance_ped_to_closest*1.0))
 
 
             # if we played chicken once, then do the original but if the time played chicken exceeds some thresh again play
             # b_update=False
-            # if delta_time > 0.5:                                                                                      # NOTE check time is in seconds not millis
+            # if delta_time > 0.5:                                                                                  # NOTE check time is in seconds not millis
             #     b_update=True
                 #lets play chicken
             prob_robot_yield = self.S[Y, X, 0]  
-                                                                                                                    # Action the robot should take either yeild (SLOW) or not yield, carry on (FAST)                        
+                                                                                                    # Action the robot should take either yeild (SLOW) or not yield, carry on (FAST)                        
             prob_ped_yield = self.S[Y, X, 1]   
-            r1 = random.random()                                                                                  # Create a random probabilty range (prob. is max 1)
+            r1 = random.random()                                                                    # Create a random probabilty range (prob. is max 1)
             if r1 < prob_robot_yield:                                
-                self.b_yield =  True                                                                             # Slow down the robot by halving the speed in linear.x (fwd/ bkd velocity)  
+                self.b_yield =  True                                                                # Slow down the robot by halving the speed in linear.x (fwd/ bkd velocity)  
             else:
                 self.b_yield = False     
 
             if X==Y:
 
-                # generate the ROS2 game info message to fill in the information,  we only capture the data when we are at diagonal
+                # generate the ROS2 game info message to fill in the information,  we capture the data when we are at or not diagonal
                 
                 self.publish_collision_marker(wx, wy, 1.,0.,1.,0.3 )
 
@@ -326,11 +314,10 @@ class ChickenSpeedModulatorNode(Node):
            
             #debug info
             np.set_printoptions(threshold=np.inf, precision=3, linewidth=200, suppress=True)
-            # self.get_logger().info(f'X: {X}, Y: {Y}, y:{self.b_yield}, PRY: {prob_robot_yield}, PPY: {prob_ped_yield}, upte: {b_update}')
+            
             self.old_time = curr_time
             if self.b_yield:
                 msg.linear.x/=2
-            
             
 
             game_info_msg.header.stamp = self.get_clock().now().to_msg()
@@ -345,15 +332,7 @@ class ChickenSpeedModulatorNode(Node):
             game_info_msg.player2_pose = self.ped_pose
             
             self.game_info_pub.publish(game_info_msg)   
-        # else:
-        #     game_info_msg.header.stamp = self.get_clock().now().to_msg()
-        #     game_info_msg.game_played = False
-        #     game_info_msg.yielding = self.b_yield
-        #     game_info_msg.player1discrete = np.nan
-        #     game_info_msg.player2discrete = np.nan
-        #     game_info_msg.player1yieldprob = np.nan
-        #     game_info_msg.player2yieldprob = np.nan
-
+        
             self.get_logger().info(f'X: {X}, Y: {Y}, rd: {round(distance_robot_to_closest,3)}, r_cur: {round(self.robot_pose_x,3), round(self.robot_pose_y,3)},pd: {round(distance_ped_to_closest,3)},  x_c: {wx}, y_c: {wy}, p_cur: {round(self.ped_pose_x,3), round(self.ped_pose_y,3)}, m: {m}, c: {c}, PRY: {prob_robot_yield}, PPY: {prob_ped_yield}, upte: {b_update}')
                                                                            # publish only when in the game
         # msg.linear.x =0.0
