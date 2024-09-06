@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+'''
+From: https://gitlab.com/charles.fox/sequentialchicken 
+'''
+
 import numpy as np
 from pylab import *
 import nashpy

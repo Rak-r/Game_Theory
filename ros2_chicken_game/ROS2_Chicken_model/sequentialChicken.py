@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+
+
+'''
+From: https://gitlab.com/charles.fox/sequentialchicken 
+
+'''
+
 #at each turn, players can go FAST=speed 2 units/tick , or SLOW=1 unit/tick
 #in the absense of collisions, they would want to go FAST, reaching the destination in distance/2 ticks
 #hence the divisions of utilities by two throughout.
