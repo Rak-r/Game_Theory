@@ -3,9 +3,9 @@
 <package format="3">
   <name>ros2_chicken_game</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>Game theory integration with ros2 for vehicle's decision making with pedestrian encounter</description>
   <maintainer email="rakshitnar12@gmail.com">rakshit</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <!-- ROS2 built tool dependencies -->
