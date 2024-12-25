@@ -18,14 +18,20 @@ I have been researching about different ways to integrate sequential games for d
 4. The experiments have been performed with the Open source Hardware & Software platform named `OpenPodCar_2` which is the upgraded version of predecessor.
 
 
+* Accodring to the research work mentioned above, the key focus here is to deleberately create the scenarios which end up in collision.
+The research focus on the integration of Pedestrian psychological behaviour into robot/autonomous vehicle control algorithms by providing the decison making ability which consist of the behavioural information in shared space. The current work is one of the (early/very few) research exprimentation and study on real physical vehicle. The image below shows the real-time experiment conducted in ros2 enviroment.
 
-The research focus on the integration of Pedestrian psychological behaviour into robot/autonomous vehicle control algorithms by providing the decison making ability which consist of the behavioural information in shared space. The current work is one of the (early/very few) research exprimentation and study on real physical vehicle. The image below shows the real-time experiment comducted in ros2 enviroment.
+The key concept in chicken model time in seconds is used as currency (1 dollar is equal to 1 second). The main parameter in the Chicken model is `U_crash`, which tells that how much the pedestrian is willing to spend the time to avoid the crash.
+
+
+For example: If for say `U_crash` is `1,00,000 seconds`, then this is equivalent to `27 hours` approximately which is interpreted a large negative utility as if crash occured, the pedestrian will have sincere injuries in which this time will be lost relating with other factors like treatment, recovery etc. Therefore, pedestrian will give this time more value than crossing to avoid the crash and pefer to yield (wait).
 
 <p align="center">
   <img src="./Images/Ped_AV_game2.jpg" width="100%" />
 </p>
 
 
+OpenPodCar_2 `blue`, vehicle path `red`, Pedestrian crossing `yellow` with track history `orange` and collision/intersection point `magenta`. 
 
 # Future work
 
