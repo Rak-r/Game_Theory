@@ -1,4 +1,4 @@
-This repository explores the operations with Game Theory for decision making. 
+This repository explores the operations with Game Theory for decision making for autonomous vehicles. 
 I have been researching about different ways to integrate sequential games for decision making into robotics.
 
 # Current Work
